@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Checklist de documentação | JS Assessoria Contábil</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <div class="brand"><div class="monogram">JS</div><div><div class="brandname">Assessoria Contábil</div><div class="sub">ESTRATÉGIA E RESULTADO</div></div></div>
+    <h1>Checklist de documentação</h1>
+    <p>Organização e acompanhamento dos documentos da empresa</p>
+  </header>
+
+  <form class="content" id="form" novalidate>
+    <div class="note">Marque os documentos que você já tem disponíveis e clique em <b>Enviar checklist</b>. Suas marcações ficam guardadas neste aparelho, e você pode voltar depois para completar e enviar de novo.</div>
+    <div class="fields">
+      <label for="f-empresa">Empresa (razão social) *<input type="text" id="f-empresa" autocomplete="organization" maxlength="200" required></label>
+      <label for="f-resp">Responsável pelo envio<input type="text" id="f-resp" autocomplete="name" maxlength="200"></label>
+    </div>
+    <div class="toolbar">
+      <div class="progress"><span id="status" aria-live="polite">0 de 22 documentos</span><div class="track"><div class="bar" id="bar"></div></div></div>
+    </div>
+    <div id="secoes" style="display:flex;flex-direction:column;gap:14px"></div>
+    <div class="obs"><label for="f-obs">Observações para a JS Assessoria<textarea id="f-obs" maxlength="4000" placeholder="Ex.: o contrato social será enviado na próxima semana."></textarea></label></div>
+    <div class="actions">
+      <button class="primary" type="submit" id="enviar">Enviar checklist</button>
+      <button type="button" id="reset">Limpar marcações</button>
+      <span class="saved" id="msg" aria-live="polite"></span>
+    </div>
+  </form>
+
+  <footer>JS ASSESSORIA CONTÁBIL</footer>
+</main>
+<script src="config.js"></script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var TOTAL = ITENS.length;
+  SECOES.forEach(function (s, i) {
+    var sec = h("section", {}, h("h2", {}, h("b", { text: String(i + 1).padStart(2, "0") }), s[0]));
+    ITENS.filter(function (it) { return it.s === s[0]; }).forEach(function (it) {
+      sec.append(h("label", { "class": "item", "for": it.id }, h("input", { type: "checkbox", id: it.id }), h("span", { text: it.t })));
+    });
+    $("secoes").append(sec);
+  });
+  var boxes = ITENS.map(function (it) { return $(it.id); });
+  var LS = "js-checklist-v3";
+
+  function novoId() {
+    var a = new Uint8Array(16); crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+  }
+  var salvo = {};
+  try { salvo = JSON.parse(localStorage.getItem(LS) || "{}") || {}; } catch (e) {}
+  var clienteId = salvo.id || novoId();
+  var enviadoEm = salvo.enviadoEm || null;
+  var pendente = !!salvo.pendente;
+
+  function dados() {
+    var itens = {}; boxes.forEach(function (b) { itens[b.id] = b.checked; });
+    return { id: clienteId, empresa: $("f-empresa").value.trim(), responsavel: $("f-resp").value.trim(),
+      observacoes: $("f-obs").value, itens: itens, marcados: boxes.filter(function (b) { return b.checked; }).length, total: TOTAL };
+  }
+  function guardar() {
+    try { var d = dados(); d.enviadoEm = enviadoEm; d.pendente = pendente; localStorage.setItem(LS, JSON.stringify(d)); } catch (e) {}
+  }
+  function progresso() {
+    var n = boxes.filter(function (b) { return b.checked; }).length;
+    $("status").textContent = n + " de " + TOTAL + " documentos";
+    $("bar").style.width = (100 * n / TOTAL) + "%";
+    $("enviar").textContent = enviadoEm ? "Enviar atualização" : "Enviar checklist";
+    if (enviadoEm && pendente) $("msg").textContent = "Há alterações ainda não enviadas.";
+  }
+  function mudou() { if (enviadoEm) pendente = true; progresso(); guardar(); }
+
+  if (salvo.itens) {
+    $("f-empresa").value = salvo.empresa || ""; $("f-resp").value = salvo.responsavel || ""; $("f-obs").value = salvo.observacoes || "";
+    boxes.forEach(function (b) { b.checked = !!salvo.itens[b.id]; });
+  }
+  if (enviadoEm && !pendente) $("msg").textContent = "Último envio: " + new Date(enviadoEm).toLocaleString("pt-BR");
+  progresso();
+
+  boxes.forEach(function (b) { b.addEventListener("change", mudou); });
+  ["f-empresa", "f-resp", "f-obs"].forEach(function (id) { $(id).addEventListener("input", mudou); });
+
+  var confirma = false;
+  $("reset").onclick = function () {
+    if (!confirma) { confirma = true; $("reset").textContent = "Confirmar limpeza"; setTimeout(function () { confirma = false; $("reset").textContent = "Limpar marcações"; }, 4000); return; }
+    confirma = false; $("reset").textContent = "Limpar marcações";
+    boxes.forEach(function (b) { b.checked = false; }); mudou();
+  };
+
+  $("form").addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (!$("f-empresa").value.trim()) { $("msg").textContent = "Informe o nome da empresa antes de enviar."; $("f-empresa").focus(); return; }
+    var btn = $("enviar"); btn.disabled = true; $("msg").textContent = "Enviando…";
+    chamarScript({ action: "salvar", dados: dados() }).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.erro) || "falha");
+      enviadoEm = Date.now(); pendente = false; guardar(); progresso();
+      $("msg").textContent = "Checklist enviado para a JS Assessoria. Obrigado!";
+    }).catch(function (e) {
+      $("msg").textContent = e.message === "config"
+        ? "O envio ainda não foi configurado pelo escritório."
+        : "Não foi possível enviar agora. Verifique sua internet e tente de novo; suas marcações continuam salvas.";
+    }).then(function () { btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>
