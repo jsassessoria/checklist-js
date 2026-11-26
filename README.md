@@ -18,8 +18,8 @@
 
 ## Uso
 
-- Link para os clientes: `https://SEU-USUARIO.github.io/checklist-js/`
-- Seu painel: `https://SEU-USUARIO.github.io/checklist-js/painel.html` (pede a senha)
+- Link para os clientes: `https://jsassessoria.github.io/checklist-js/`
+- Seu painel: `https://jsassessoria.github.io/checklist-js/painel.html` (pede a senha)
 - As respostas também aparecem na aba **Respostas** da planilha, uma linha por cliente.
 
 Se mudar o código do Apps Script depois, use **Implantar > Gerenciar implantações > Editar > Nova versão** para manter o mesmo link.
