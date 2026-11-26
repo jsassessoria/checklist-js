@@ -1,5 +1,5 @@
 // Cole aqui o endereço do "App da Web" gerado no Google Apps Script (termina em /exec).
-window.SCRIPT_URL = "COLE_AQUI_O_LINK_DO_APPS_SCRIPT";
+window.SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_axCVe9VejWxXquuD7m8A_ovgXn0P4AEhVdfefFj19S71ML1889zwZd3f3hARfy4/exec";
 
 // Lista de documentos do checklist (usada pelo formulário e pelo painel).
 window.SECOES = [
