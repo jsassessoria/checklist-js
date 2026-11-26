@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Acompanhamento | JS Assessoria Contábil</title>
 <link rel="stylesheet" href="styles.css?v=2">
+<style>[hidden]{display:none!important}</style>
 </head>
 <body>
 <main>
@@ -106,7 +107,7 @@
         if (r.erro === "senha") { sair(); $("login-msg").textContent = "Senha incorreta."; return; }
         throw new Error(r.erro);
       }
-      $("login").hidden = true; $("painel").hidden = false; $("login-msg").textContent = "";
+      $("login").hidden = true; $("login").style.display = "none"; $("painel").hidden = false; $("painel").style.display = ""; $("login-msg").textContent = "";
       render(r.respostas || []);
       $("painel-msg").textContent = "Atualizado às " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     }).catch(function (e) {
@@ -114,7 +115,8 @@
       $("painel-msg").textContent = t; $("login-msg").textContent = t;
     });
   }
-  function sair() { senha = ""; try { sessionStorage.removeItem("js-painel"); } catch (e) {} $("painel").hidden = true; $("login").hidden = false; $("senha").value = ""; }
+  function sair() { senha = ""; try { sessionStorage.removeItem("js-painel"); } catch (e) {} $("painel").hidden = true; $("painel").style.display = "none"; $("login").hidden = false; $("login").style.display = ""; $("senha").value = ""; }
+  $("painel").style.display = "none";
 
   $("login").addEventListener("submit", function (ev) {
     ev.preventDefault(); senha = $("senha").value; if (!senha) return;
